@@ -1,0 +1,31 @@
+name: Fetch MCD Info
+
+on:
+  schedule:
+    - cron: '0 18 * * *'   # Daily UTC 18:00 = JST 03:00
+  workflow_dispatch:        # Allow manual runs
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch MCD info
+        run: python3 scripts/fetch_mcd.py
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "auto: fetch mcd-scraper $(TZ=Asia/Tokyo date +%Y-%m-%d)"
+          git push
